@@ -1,3 +1,6 @@
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import java.io.*;
 import java.util.Arrays;
 import static java.lang.System.out;
@@ -36,45 +39,31 @@ public class Basket {
 
     }
 
-    public void saveTxt(File textFile) throws FileNotFoundException {
+    public void saveJSON(File textFile) {
 
-        try (PrintWriter pw = new PrintWriter(textFile)) {
-
-            for (String good : goods) {
-                pw.print(good + " ");
-            }
-            pw.println();
-
-            for (int price : prices) {
-                pw.print(price + " ");
-            }
-            pw.println();
-
-            for (int quantity : quantities) {
-                pw.print(quantity + " ");
-            }
-            pw.println();
+        try (PrintWriter writer = new PrintWriter(textFile)) {
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            String json = gson.toJson(this);
+            writer.print(json);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    public static Basket loadFromTxtFile(File textFile) {
+    public static Basket loadFromJSONFile(File textFile) {
 
         Basket basket = new Basket();
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(textFile))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(textFile))) {
 
-            String goodsStr = bufferedReader.readLine();
-            String pricesStr = bufferedReader.readLine();
-            String quantitiesStr = bufferedReader.readLine();
+            StringBuilder builder = new StringBuilder();
+            String line = null;
+            while ((line = reader.readLine()) != null) {
 
-            basket.goods = goodsStr.split(" ");
-            basket.prices = Arrays.stream(pricesStr.split(" "))
-                    .map(Integer::parseInt)
-                    .mapToInt(Integer::intValue)
-                    .toArray();
-            basket.quantities = Arrays.stream(quantitiesStr.split(" "))
-                    .map(Integer::parseInt)
-                    .mapToInt(Integer::intValue)
-                    .toArray();
+                builder.append(line);
+            }
+            Gson gson = new Gson();
+            basket = gson.fromJson(builder.toString(), Basket.class);
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
