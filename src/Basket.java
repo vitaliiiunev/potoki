@@ -69,4 +69,65 @@ public class Basket {
         }
         return basket;
     }
+
+    public static Basket loadFromTxtFile(File textFile) {
+        Basket basket = new Basket();
+        try (BufferedReader reader = new BufferedReader(new FileReader(textFile))) {
+
+            String goodsStr = reader.readLine();
+            String pricesStr = reader.readLine();
+            String quantitiesStr = reader.readLine();
+
+            basket.goods = goodsStr.split(" ");
+            basket.prices = Arrays.stream(pricesStr.split(" "))
+                    .map(Integer::parseInt)
+                    .mapToInt(Integer::intValue)
+                    .toArray();
+            basket.quantities = Arrays.stream(quantitiesStr.split(" "))
+                    .map(Integer::parseInt)
+                    .mapToInt(Integer::intValue)
+                    .toArray();
+
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return basket;
+    }
+
+    public void saveTxt(File textFile) {
+        try (PrintWriter writer = new PrintWriter(textFile)) {
+            writer.println(String.join(" ", goods));
+            writer.println(String.join(" ", Arrays.stream(prices)
+                    .mapToObj(String::valueOf)
+                    .toArray(String[]::new)));
+            writer.println(String.join(" ", Arrays.stream(quantities)
+                    .mapToObj(String::valueOf)
+                    .toArray(String[]::new)));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void saveBin(File file) throws FileNotFoundException {
+        try(ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
+
+            oos.writeObject(this);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public static Basket loadFromBinFile(File file) throws FileNotFoundException {
+
+        Basket basket = null;
+        try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
+            basket = (Basket) ois.readObject();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        return basket;
+    }
 }
